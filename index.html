@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aero3D — Single-View Elevation & 3D Flythrough Prototype</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b111a'/%3E%3Cpath d='M6 22l7-11 4 6 3-4 6 9z' fill='%236f9cc8'/%3E%3C/svg%3E" />
+</head>
+<body>
+  <!-- shared SVG icon sprite: every UI icon resolves through <use> so stroke/color stay consistent -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-menu" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></g></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></g></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></g></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/></g></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></g></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></g></symbol>
+    <symbol id="i-ruler" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2"/><path d="m11.5 9.5 2-2"/><path d="m8.5 6.5 2-2"/><path d="m17.5 15.5 2-2"/></g></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></g></symbol>
+    <symbol id="i-mountain" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></g></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.1 12.4a1 1 0 0 1 0-.8 10.8 10.8 0 0 1 19.8 0 1 1 0 0 1 0 .8 10.8 10.8 0 0 1-19.8 0"/><circle cx="12" cy="12" r="3"/></g></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12.8 2.2a2 2 0 0 0-1.6 0L2.6 6.1a1 1 0 0 0 0 1.8l8.6 3.9a2 2 0 0 0 1.6 0l8.6-3.9a1 1 0 0 0 0-1.8Z"/><path d="m22 17.7-9.2 4.1a2 2 0 0 1-1.6 0L2 17.7"/><path d="m22 12.7-9.2 4.1a2 2 0 0 1-1.6 0L2 12.7"/></g></symbol>
+    <symbol id="i-compare" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18"/></g></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.7 9.7 0 0 0-6.7 2.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></g></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4Z"/><circle cx="7.5" cy="7.5" r="1"/></g></symbol>
+    <symbol id="i-scissors" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.6"/><circle cx="6" cy="18" r="2.6"/><path d="M20 4 8.1 15.9"/><path d="M14.5 14.5 20 20"/><path d="M8.1 8.1 12 12"/></g></symbol>
+    <symbol id="i-radar" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19.1 4.9A10 10 0 0 0 7 3.3"/><path d="M4 6h.01"/><path d="M2.3 9.6A10 10 0 1 0 21.3 8.4"/><path d="M16.2 7.8A6 6 0 1 0 8 12"/><path d="M12 18h.01"/><circle cx="12" cy="12" r="1.6"/><path d="m13.4 10.6 5.7-5.7"/></g></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.7-9h1.8a4.5 4.5 0 1 1 0 9Z"/></g></symbol>
+    <symbol id="i-waves" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></g></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></g></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></g></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></g></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></g></symbol>
+    <symbol id="i-bookmark" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></g></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></g></symbol>
+    <symbol id="i-walk" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.4"/><path d="m9 20 3-6 3 6"/><path d="m6.5 8.5 5.5 1.5 5.5-1.5"/><path d="M12 10v4"/></g></symbol>
+    <symbol id="i-repeat" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></g></symbol>
+    <symbol id="i-clapper" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/><path d="m6.2 5.3 3.1 3.9"/><path d="m12.4 3.4 3.1 4"/><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></g></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></g></symbol>
+    <symbol id="i-keyboard" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01"/><path d="M10 10h.01"/><path d="M14 10h.01"/><path d="M18 10h.01"/><path d="M6 14h.01"/><path d="M18 14h.01"/><path d="M10 14h4"/></g></symbol>
+    <symbol id="i-rocket" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9a2.2 2.2 0 0 0-2.9-.1z"/><path d="m12 15-3-3a22 22 0 0 1 2-4A12.9 12.9 0 0 1 22 2c0 2.7-.8 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.6-3 2-4c1.6-1.1 5 0 5 0"/><path d="M12 15v5s3-.6 4-2c1.1-1.6 0-5 0-5"/></g></symbol>
+    <symbol id="i-satellite" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m13 7-4-4-4 4 4 4Z"/><path d="m17 11 4 4-4 4-4-4Z"/><path d="m8 12 4 4 4-4-4-4Z"/><path d="m16 8 3-3"/><path d="M9 21a6 6 0 0 0-6-6"/></g></symbol>
+    <symbol id="i-orbit" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><path d="M10.4 21.9a10 10 0 0 0 9.9-15.4"/><path d="M13.6 2.1a10 10 0 0 0-9.9 15.4"/></g></symbol>
+    <symbol id="i-drone" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.5"/><path d="M6 6l4 4"/><path d="M3.5 6h5"/><path d="M18 6l-4 4"/><path d="M15.5 6h5"/><path d="M6 18l4-4"/><path d="M3.5 18h5"/><path d="M18 18l-4-4"/><path d="M15.5 18h5"/></g></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></g></symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.8-1.6l9.9-10.2a.5.5 0 0 1 .9.5l-1.9 6a1 1 0 0 0 1 1.3h7a1 1 0 0 1 .8 1.6l-9.9 10.2a.5.5 0 0 1-.9-.5l1.9-6a1 1 0 0 0-1-1.3z"/></g></symbol>
+    <symbol id="i-balance" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.9.7-1.9 1-3 1s-2.1-.3-3-1Z"/><path d="m2 16 3-8 3 8c-.9.7-1.9 1-3 1s-2.1-.3-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></g></symbol>
+    <symbol id="i-video" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m16 13 5.2 3.5a.5.5 0 0 0 .8-.4V7.9a.5.5 0 0 0-.8-.4L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/></g></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></g></symbol>
+    <symbol id="i-therm" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4v10.5a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/></g></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.9 4.9 1.4 1.4"/><path d="m17.7 17.7 1.4 1.4"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.3 17.7-1.4 1.4"/><path d="m19.1 4.9-1.4 1.4"/></g></symbol>
+    <symbol id="i-move" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m8 18-4-4 4-4"/><path d="M12 2v20"/><path d="m16 18 4-4-4-4"/></g></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 4 14 8-14 8V4z"/></g></symbol>
+    <symbol id="i-arrow-down" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></g></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></g></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></g></symbol>
+    <symbol id="i-rotate-ccw" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.7 9.7 0 0 0-6.7 2.7L3 8"/><path d="M3 3v5h5"/></g></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></g></symbol>
+    <symbol id="i-cpu" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></g></symbol>
+    <symbol id="i-leaf" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10Z"/><path d="M2 21c0-3 1.9-5.4 5.1-6C9.5 14.5 12 13 13 12"/></g></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></g></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1L12 2z"/></g></symbol>
+    <symbol id="i-tower" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6"/><circle cx="12" cy="4" r="1.2"/><path d="m9.5 22 2.5-14 2.5 14"/><path d="M7 22h10"/><path d="m10.6 15.5h2.8"/><path d="m11.3 11.5h1.4"/></g></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></g></symbol>
+  </defs>
+</svg>
+  <!-- ============================ LANDING ============================ -->
+  <section id="screen-landing" class="screen">
+    <div class="landing-wrap">
+      <header class="hero">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <div class="badges">
+              <span class="badge"><svg class="svg-ic" aria-hidden="true"><use href="#i-rocket"/></svg>SIH 2026</span>
+              <span class="badge"><svg class="svg-ic" aria-hidden="true"><use href="#i-satellite"/></svg>ISRO · Disaster Management theme</span>
+              <span class="badge gold"><svg class="svg-ic" aria-hidden="true"><use href="#i-trophy"/></svg>Judged 50% DSM accuracy · 50% visualization</span>
+              <span class="badge warn"><svg class="svg-ic" aria-hidden="true"><use href="#i-alert"/></svg>Simulation prototype — no real model runs here</span>
+            </div>
+            <p class="kicker">Single-image photogrammetry · synthetic-vision prototype</p>
+            <h1>Aero<span>3D</span></h1>
+            <p class="tagline">Single-view optical imagery → elevation maps → navigable 3D terrain.</p>
+            <p class="desc">Upload a satellite/aerial RGB image, or pick a built-in survey scene. The simulated
+              pipeline extracts a relative surface model, calibrates it to metric heights, and drops you into
+              a real-time 3D flythrough with drone, first-person and analysis tools.</p>
+            <div class="hero-cta">
+              <a href="#scene-cards" id="hero-demo-btn" class="cta-btn"><svg class="svg-ic" aria-hidden="true"><use href="#i-play"/></svg>Run the demo</a>
+              <a href="#scene-cards" class="cta-btn ghost-cta"><svg class="svg-ic" aria-hidden="true"><use href="#i-arrow-down"/></svg>Explore a scene</a>
+              <span class="cta-note">No install, no sign-up — click a scene card and you're flying in ~10 seconds.</span>
+            </div>
+          </div>
+          <figure class="hero-visual" id="hero-visual" role="button" tabindex="0"
+                  aria-label="Load the Ridgeline hilly demo scene and start the flythrough">
+            <canvas id="hero-preview" width="480" height="300"></canvas>
+            <div class="hv-overlay">
+              <span class="hv-chip"><svg class="svg-ic" aria-hidden="true"><use href="#i-clapper"/></svg>Animated intro path · same easing as fly-to</span>
+            </div>
+            <figcaption><b>Ridgeline — Hilly</b><span>click to load this scene and start flying</span></figcaption>
+          </figure>
+        </div>
+      </header>
+
+      <div class="preview-strip" aria-hidden="true">
+        <div id="strip-track" class="strip-track"></div>
+      </div>
+
+      <div class="feature-row">
+        <div class="feat"><span class="feat-ic"><svg class="svg-ic" aria-hidden="true"><use href="#i-cpu"/></svg></span><div><b>Simulated depth pipeline</b><span>mono-depth → SRTM-anchored metric DSM, georeferenced or relative</span></div></div>
+        <div class="feat"><span class="feat-ic"><svg class="svg-ic" aria-hidden="true"><use href="#i-satellite"/></svg></span><div><b>Real-time 3D flythrough</b><span>orbit, drone and walk modes, cinematic auto-fly, sun control</span></div></div>
+        <div class="feat"><span class="feat-ic"><svg class="svg-ic" aria-hidden="true"><use href="#i-ruler"/></svg></span><div><b>Survey toolkit</b><span>probe, distance measure, contours, flood sim, point cloud, bookmarks</span></div></div>
+        <div class="feat"><span class="feat-ic"><svg class="svg-ic" aria-hidden="true"><use href="#i-leaf"/></svg></span><div><b>Land-cover head</b><span>5-class segmentation overlaid in 3D with per-class mIoU</span></div></div>
+      </div>
+
+      <h2 class="step-h"><span class="step-n">1</span> Choose a survey scene</h2>
+      <div id="scene-cards" class="cards"></div>
+
+      <h2 class="step-h"><span class="step-n">2</span> Or upload your own imagery</h2>
+      <div id="dropzone" class="dropzone" tabindex="0" role="button"
+           aria-label="Upload imagery: drop a PNG, JPG or TIFF here, or press Enter to browse for a file">
+        <div class="dz-icon"><svg class="svg-ic" aria-hidden="true"><use href="#i-upload"/></svg></div>
+        <div><strong>Drop a PNG / JPG / TIFF</strong> here, or click to browse</div>
+        <div class="dz-sub">GeoTIFF-style inputs (.tif) take the georeferenced path · PNG/JPG take the relative (rDSM) path</div>
+        <input id="file-input" type="file" accept=".png,.jpg,.jpeg,.tif,.tiff" hidden />
+      </div>
+
+      <footer class="foot">
+        <div class="foot-cols">
+          <div class="foot-col">
+            <h4>Aero3D</h4>
+            <p>Single-image → elevation → 3D flythrough prototype for ISRO's SIH 2026
+              Disaster Management problem statement. Judged on DSM accuracy (50%) and
+              visualization quality (50%).</p>
+          </div>
+          <div class="foot-col">
+            <h4>Pipeline</h4>
+            <p class="mono">optical ingest → mono-depth v2.1 (sim) → SRTM-anchored
+              calibration (sim) → 130k-tri Three.js mesh → flythrough</p>
+          </div>
+          <div class="foot-col">
+            <h4>Disclaimer</h4>
+            <p>All elevations, accuracies and land-cover labels on this demo are
+              <b>simulated</b> — not survey-grade. Built for evaluation, not field use.</p>
+          </div>
+          <div class="foot-col">
+            <h4>Attribution</h4>
+            <p>3D engine: <b>Three.js</b> · elevation anchor: simulated SRTM-30 m fit · built with Vite +
+              TypeScript. All demo scenes are procedurally generated in-browser — no real sensor data is used.</p>
+          </div>
+          <div class="foot-col">
+            <h4>Credits</h4>
+            <p>Prototype built for <b>SIH 2026 · ISRO</b> (Disaster Management problem statement). Content is
+              illustrative and evaluation-only — not for operational or field use.</p>
+          </div>
+        </div>
+        <div class="foot-base"><span>© 2026 Aero3D prototype · evaluation build</span><span><svg class="svg-ic" aria-hidden="true"><use href="#i-satellite"/></svg> SIH 2026 · ISRO · Disaster Management</span></div>
+      </footer>
+    </div>
+  </section>
+
+  <!-- ========================== PROCESSING =========================== -->
+  <section id="screen-processing" class="screen hidden">
+    <div class="proc-wrap">
+      <h1>Processing <span id="proc-scene-name"></span></h1>
+      <p class="proc-eta"><span id="proc-eta"></span> · simulated pipeline — real inference would dominate this timeline</p>
+      <div class="proc-grid">
+        <div class="proc-left">
+          <ol id="stage-list" class="stages"></ol>
+          <div class="console"><div id="proc-log"></div></div>
+        </div>
+        <div class="proc-right">
+          <figure><figcaption>Input RGB</figcaption><canvas id="pv-rgb" width="256" height="256"></canvas></figure>
+          <figure><figcaption>Predicted rDSM <span class="mono">mono-depth v2.1</span></figcaption><canvas id="pv-depth" width="256" height="256"></canvas><div id="pv-depth-ph" class="ph">waiting…</div></figure>
+          <figure><figcaption>Calibrated DSM <span class="mono" id="pv-dsm-tag"></span></figcaption><canvas id="pv-dsm" width="256" height="256"></canvas><div id="pv-dsm-ph" class="ph">waiting…</div></figure>
+          <figure><figcaption>Land-cover map <span class="mono">seg-landcover v1.3</span></figcaption><canvas id="pv-class" width="256" height="256"></canvas><div id="pv-class-ph" class="ph">waiting…</div></figure>
+        </div>
+      </div>
+      <!-- inline processing error state: toast + this card, never alert() -->
+      <div id="proc-error" class="error-card hidden" role="alert">
+        <div class="ec-icon"><svg class="svg-ic" aria-hidden="true"><use href="#i-alert"/></svg></div>
+        <h2>Processing failed</h2>
+        <p id="proc-error-msg"></p>
+        <div class="ec-actions">
+          <button id="btn-error-retry" class="tb-btn"><svg class="svg-ic" aria-hidden="true"><use href="#i-rotate-ccw"/></svg>Try again</button>
+          <button id="btn-error-back" class="tb-btn ghost"><svg class="svg-ic" aria-hidden="true"><use href="#i-arrow-left"/></svg>Back to scenes</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ VIEWER ============================= -->
+  <section id="screen-viewer" class="screen hidden">
+    <div id="gl"></div>
+    <!-- cinematic film FX layers: intensity is driven by the quality preset (see app.ts) -->
+    <div id="fx-vignette" class="fx fx-vignette" aria-hidden="true"></div>
+    <div id="fx-grain" class="fx fx-grain" aria-hidden="true"></div>
+
+    <button id="toolbar-toggle" class="tb-btn" aria-label="Toggle toolbar" aria-expanded="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-menu"/></svg></button>
+    <div id="toolbar" class="toolbar">
+      <div class="tb-group">
+        <span class="tb-label">View</span>
+        <button data-mode="orbit" class="tb-btn active" title="Orbit (V)"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-orbit"/></svg></span><span class="lbl">Orbit</span></button>
+        <button data-mode="drone" class="tb-btn" title="Drone (V)"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-drone"/></svg></span><span class="lbl">Drone</span></button>
+        <button data-mode="fpv" class="tb-btn" title="First-person (V)"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-walk"/></svg></span><span class="lbl">Walk</span></button>
+        <button id="btn-autoorbit" class="tb-btn toggle" title="Auto-orbit: hands-free kiosk spin around the scene (orbit mode)"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-repeat"/></svg></span><span class="lbl">Auto-orbit</span></button>
+        <button id="btn-cine" class="tb-btn toggle" title="Cinematic drone path (drone mode)"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-clapper"/></svg></span><span class="lbl">Auto-fly</span></button>
+        <button id="btn-places" class="tb-btn toggle" title="Camera bookmarks & POI tour"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-bookmark"/></svg></span><span class="lbl">Places</span></button>
+        <button id="btn-clean" class="tb-btn toggle" title="Presentation mode: hide all panels, toolbar, HUD & toasts (P)"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-expand"/></svg></span><span class="lbl">Present</span></button>
+        <button id="btn-help" class="tb-btn" title="Shortcuts"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-help"/></svg></span><span class="lbl">Help</span></button>
+      </div>
+      <div class="tb-group">
+        <span class="tb-label">Analyze</span>
+        <button id="btn-probe" class="tb-btn toggle" title="Click terrain to read height"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-pin"/></svg></span><span class="lbl">Probe</span></button>
+        <button id="btn-measure" class="tb-btn toggle" title="Distance measurement (orbit mode)"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-ruler"/></svg></span><span class="lbl">Measure</span></button>
+        <button id="btn-measure-volume" class="tb-btn toggle" title="Cut/fill volume in a polygon (orbit mode)"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-box"/></svg></span><span class="lbl">Volume</span></button>
+        <button id="btn-profile" class="tb-btn toggle" title="Elevation profile: draw a traverse line, open the 2D profile chart"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-mountain"/></svg></span><span class="lbl">Profile</span></button>
+        <button id="btn-viewshed" class="tb-btn toggle" title="Viewshed: click terrain to place the observer · green = visible, red = occluded"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-eye"/></svg></span><span class="lbl">Viewshed</span></button>
+        <button id="btn-contours" class="tb-btn toggle" title="Contour lines"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-layers"/></svg></span><span class="lbl">Contours</span></button>
+        <button id="btn-compare" class="tb-btn toggle" title="Swipe: optical RGB vs DSM"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-compare"/></svg></span><span class="lbl">Compare</span></button>
+        <button id="btn-change" class="tb-btn toggle" title="Change detection: pre/post monsoon DSM compare"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-history"/></svg></span><span class="lbl">Compare events</span></button>
+        <input id="compare-range" type="range" min="0" max="100" value="50" class="hidden cmp" title="Compare split" aria-label="Compare split position" />
+        <button id="btn-spots" class="tb-btn toggle" title="Spot elevations: click terrain to drop markers · smart grid auto-places"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-tag"/></svg></span><span class="lbl">Spots</span></button>
+        <button id="btn-slice" class="tb-btn toggle" title="Elevation slice: clip-plane cross-section inspection"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-scissors"/></svg></span><span class="lbl">Slice</span></button>
+        <input id="slice-range" type="range" min="0" max="100" value="50" class="hidden cmp" title="Slice position" aria-label="Slice position" />
+        <button id="slice-axis" class="tb-btn hidden" title="Toggle slice axis (east–west ↔ north–south)">X</button>
+      </div>
+      <div class="tb-group">
+        <span class="tb-label">Display</span>
+        <select id="overlay-sel" title="Surface layer" aria-label="Surface layer">
+          <option value="0">Optical texture</option>
+          <option value="1">Slope analysis</option>
+          <option value="2">Hypsometric tint</option>
+          <option value="3">Land-cover classes</option>
+        </select>
+        <span class="tb-sub"><svg class="svg-ic" aria-hidden="true"><use href="#i-sun"/></svg></span>
+        <input id="sun-az" type="range" min="0" max="360" value="27" class="sun" title="Sun azimuth °" aria-label="Sun azimuth in degrees" />
+        <input id="sun-el" type="range" min="8" max="80" value="49" class="sun" title="Sun elevation °" aria-label="Sun elevation in degrees" />
+        <span id="sun-val" class="tb-val">27°/49°</span>
+        <span class="tb-sub" title="Vertical exaggeration"><svg class="svg-ic" aria-hidden="true"><use href="#i-move"/></svg></span>
+        <input id="exagg" type="range" min="0.5" max="3" step="0.1" value="1" title="Vertical exaggeration" aria-label="Vertical exaggeration" />
+        <span id="exagg-val" class="tb-val">1.0×</span>
+        <button id="btn-scan" class="tb-btn toggle on" title="Survey scan-wave + grid overlay"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-radar"/></svg></span><span class="lbl">Scan</span></button>
+        <button id="btn-points" class="tb-btn toggle" title="LiDAR-style point-cloud layer"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-cloud"/></svg></span><span class="lbl">Points</span></button>
+        <button id="btn-flood" class="tb-btn toggle" title="Flood level simulation"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-waves"/></svg></span><span class="lbl">Flood</span></button>
+        <input id="flood-range" type="range" min="0" max="100" value="35" class="hidden cmp" title="Water level (% of relief)" aria-label="Flood water level as percent of relief" />
+        <span id="flood-val" class="tb-val hidden mono"></span>
+      </div>
+      <div class="tb-group right">
+        <span class="tb-label">Export</span>
+        <button id="btn-dsm" class="tb-btn" title="Download DSM as PNG"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-download"/></svg></span><span class="lbl">DSM</span></button>
+        <button id="btn-report" class="tb-btn" title="Download survey report"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-file"/></svg></span><span class="lbl">Report</span></button>
+        <button id="btn-snapshot" class="tb-btn" title="Save the 3D view as a PNG snapshot (Alt+P)"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-camera"/></svg></span><span class="lbl">Snapshot</span></button>
+        <button id="btn-share" class="tb-btn" title="Copy a shareable link that restores this exact view"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-link"/></svg></span><span class="lbl">Share</span></button>
+        <button id="btn-new" class="tb-btn ghost" title="Back to scene select"><span class="ic" aria-hidden="true"><svg class="svg-ic" aria-hidden="true"><use href="#i-arrow-left"/></svg></span><span class="lbl">New</span></button>
+      </div>
+    </div>
+
+    <aside id="metrics" class="panel">
+      <h3><svg class="svg-ic" aria-hidden="true"><use href="#i-mountain"/></svg> DSM quality <span class="sim-tag">simulated</span></h3>
+      <div id="metrics-body"></div>
+    </aside>
+
+    <div id="measure-panel" class="m-panel hidden">
+      <h3><svg class="svg-ic" aria-hidden="true"><use href="#i-ruler"/></svg> Measurements</h3>
+      <div id="measure-list"></div>
+      <div class="m-actions">
+        <button id="btn-measure-finish" class="tb-btn" title="Finish current measurement"><svg class="svg-ic" aria-hidden="true"><use href="#i-check"/></svg> Finish</button>
+        <button id="btn-measure-clear" class="tb-btn ghost" title="Remove all measurements">Clear all</button>
+      </div>
+      <div class="mnote" id="measure-hint">Click terrain to add points · double-click to finish · Esc cancels</div>
+    </div>
+
+    <div id="places-panel" class="m-panel hidden">
+      <h3><svg class="svg-ic" aria-hidden="true"><use href="#i-bookmark"/></svg> Places &amp; POI tour</h3>
+      <div id="places-list"></div>
+      <div class="m-actions">
+        <button id="btn-place-save" class="tb-btn" title="Save current camera view"><svg class="svg-ic" aria-hidden="true"><use href="#i-plus"/></svg> Save this view</button>
+        <button id="btn-place-clear" class="tb-btn ghost" title="Remove my saved views">Clear mine</button>
+      </div>
+      <div class="mnote">One click flies the camera along the cinematic path — the guided-tour flow.</div>
+    </div>
+
+    <div id="viewshed-panel" class="m-panel hidden">
+      <h3><svg class="svg-ic" aria-hidden="true"><use href="#i-eye"/></svg> Viewshed</h3>
+      <div id="viewshed-stats" class="mnote">Click the terrain to place the observer…</div>
+      <div class="m-actions" style="align-items:center">
+        <span title="Tower / mast height above the observer"><svg class="svg-ic" aria-hidden="true"><use href="#i-tower"/></svg></span>
+        <input id="viewshed-tower" type="range" min="0" max="200" step="1" value="15" style="flex:1" title="Tower height in meters (recomputes live)" aria-label="Tower height in meters" />
+        <span id="viewshed-tower-val" class="tb-val">15 m</span>
+      </div>
+      <div class="m-actions">
+        <button id="btn-viewshed-clear" class="tb-btn ghost" title="Remove the viewshed overlay">Clear</button>
+      </div>
+      <div class="mnote">Green = intervisible · red = occluded (Esri convention). Esc cancels placement.</div>
+    </div>
+
+    <div id="spots-panel" class="m-panel hidden">
+      <h3><svg class="svg-ic" aria-hidden="true"><use href="#i-tag"/></svg> Spot elevations</h3>
+      <div id="spots-stats" class="mnote">No markers yet.</div>
+      <div class="m-actions">
+        <button id="btn-spot-grid" class="tb-btn" title="Auto-place an evenly spaced grid of spot heights (Pix4D-style smart grid)"><svg class="svg-ic" aria-hidden="true"><use href="#i-expand"/></svg> Smart grid</button>
+        <button id="btn-spot-clear" class="tb-btn ghost" title="Remove all spot markers">Clear all</button>
+      </div>
+      <ul id="spots-list" class="spots-list"></ul>
+      <div class="mnote">Click terrain to drop markers · Esc clears · click a row to fly there.</div>
+    </div>
+
+    <div id="profile-panel" class="m-panel hidden profile-wide">
+      <h3><svg class="svg-ic" aria-hidden="true"><use href="#i-mountain"/></svg> Elevation profile <button id="btn-profile-close" class="mini-del" title="Close profile" aria-label="Close profile"><svg class="svg-ic" aria-hidden="true"><use href="#i-x"/></svg></button></h3>
+      <div id="profile-stats" class="mnote"></div>
+      <div id="profile-chart" style="cursor:crosshair"></div>
+      <input id="profile-scrub" type="range" min="0" max="100" value="0" style="width:100%" title="Scrub along the traverse" aria-label="Scrub along the traverse" />
+      <div id="profile-read" class="mnote"></div>
+    </div>
+
+    <div id="hud" class="hud">
+      <div class="hud-left">
+        <span id="hud-mode" class="hud-mode">ORBIT</span>
+        <div class="hud-readouts">
+          <div class="hr"><label>FPS</label><span id="hud-fps">--</span></div>
+          <div class="hr"><label>ALT</label><span><span id="hud-alt">--</span> m</span></div>
+          <div class="hr"><label>SPD</label><span><span id="hud-spd">--</span> m/s</span></div>
+          <div class="hr"><label>HDG</label><span><span id="hud-heading">--</span>&deg;</span></div>
+        </div>
+      </div>
+      <div id="scalebar" class="scalebar" title="Scale at view distance">
+        <div id="scalebar-bar" class="scalebar-bar"></div><span id="scalebar-lbl">--</span>
+      </div>
+      <div id="compass" class="compass" title="Camera heading">
+        <svg viewBox="0 0 48 48">
+          <g id="compass-rose">
+            <text x="24" y="11" text-anchor="middle" class="cn">N</text>
+            <text x="24" y="42" text-anchor="middle" class="cd">S</text>
+            <text x="39" y="28" text-anchor="middle" class="cd">E</text>
+            <text x="9" y="28" text-anchor="middle" class="cd">W</text>
+          </g>
+          <polygon points="24,16 27,28 24,25.5 21,28" class="needle" />
+        </svg>
+      </div>
+      <div id="telemetry-strip" class="tele-strip" title="Mission telemetry — refreshed twice per second">
+        <span class="rec-chip" title="Mission recording"><i id="tele-rec" class="rec-dot"></i>REC</span>
+        <div class="hr" title="UTC mission clock — elapsed since scene load"><label>CLK</label><span id="tele-clock" class="tele-val">T+00:00:00</span></div>
+        <div class="hr" title="Camera altitude above terrain"><label>AGL</label><span class="tele-val"><span id="tele-agl">--</span> m</span></div>
+        <div class="hr" title="Camera heading (same source as the compass)"><label>HDG</label><span class="tele-val"><span id="tele-hdg">--</span>° <span id="tele-hdg-pt" class="tele-pt">--</span></span></div>
+      </div>
+    </div>
+
+    <div id="toasts" class="toasts" aria-live="polite"></div>
+
+    <div id="hints" class="hints"></div>
+    <div id="probe-pop" class="probe-pop hidden"></div>
+    <div id="spot-layer" class="spot-layer" aria-hidden="true"></div>
+    <div id="class-legend" class="class-legend hidden"></div>
+    <canvas id="minimap" class="minimap" width="168" height="168" title="2D overview — camera frustum &amp; north"></canvas>
+
+    <button id="clean-exit" class="clean-exit hidden" title="Exit presentation mode (P)"><svg class="svg-ic" aria-hidden="true"><use href="#i-x"/></svg> Exit presentation <kbd>P</kbd></button>
+
+    <div id="help-modal" class="modal hidden">
+      <div class="modal-card">
+        <h3>Controls</h3>
+        <table>
+          <tr><td><kbd>V</kbd></td><td>Cycle Orbit → Drone → Walk</td></tr>
+          <tr><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></td><td>Move (drone / walk)</td></tr>
+          <tr><td><kbd>R</kbd> / <kbd>F</kbd> or <kbd>Space</kbd></td><td>Drone up / down</td></tr>
+          <tr><td>Drag</td><td>Drone: look around · Orbit: rotate</td></tr>
+          <tr><td>Wheel</td><td>Drone speed · Orbit zoom</td></tr>
+          <tr><td>Click (walk)</td><td>Pointer-lock mouse look</td></tr>
+          <tr><td><kbd>Shift</kbd></td><td>Boost</td></tr>
+          <tr><td><kbd>?</kbd></td><td>This panel</td></tr>
+          <tr><td><kbd>H</kbd></td><td>Full keyboard cheat sheet (overlay reference)</td></tr>
+          <tr><td><svg class="svg-ic" aria-hidden="true"><use href="#i-compare"/></svg> Compare</td><td>Swipe optical RGB ↔ DSM (hypsometric + contours)</td></tr>
+          <tr><td><svg class="svg-ic" aria-hidden="true"><use href="#i-sun"/></svg> Sun sliders</td><td>Sun azimuth / elevation for shadow analysis</td></tr>
+          <tr><td><svg class="svg-ic" aria-hidden="true"><use href="#i-zap"/></svg> <svg class="svg-ic" aria-hidden="true"><use href="#i-balance"/></svg> <svg class="svg-ic" aria-hidden="true"><use href="#i-video"/></svg> Quality presets</td><td>Quality presets (Display) — Performance / Balanced / Cinematic: pixel ratio, shadow resolution &amp; film FX; choice saved per browser</td></tr>
+          <tr><td><svg class="svg-ic" aria-hidden="true"><use href="#i-radar"/></svg> Scan</td><td>Radar sweep + survey grid overlay</td></tr>
+          <tr><td><svg class="svg-ic" aria-hidden="true"><use href="#i-ruler"/></svg> Measure</td><td>Click points for draped distance · double-click to finish</td></tr>
+          <tr><td><svg class="svg-ic" aria-hidden="true"><use href="#i-box"/></svg> Volume</td><td>Draw a polygon · finish for cut/fill volumes in m³</td></tr>
+          <tr><td><svg class="svg-ic" aria-hidden="true"><use href="#i-cloud"/></svg> Points</td><td>LiDAR-style point-cloud layer (hypsometric colors)</td></tr>
+          <tr><td><svg class="svg-ic" aria-hidden="true"><use href="#i-waves"/></svg> Flood</td><td>Raise a water plane over the DSM · slider = % of relief</td></tr>
+          <tr><td><svg class="svg-ic" aria-hidden="true"><use href="#i-camera"/></svg> Snapshot</td><td>Save the current 3D view as a PNG, with scene name + timestamp title bar (<kbd>Alt</kbd>+<kbd>P</kbd>)</td></tr>
+          <tr><td><kbd>P</kbd></td><td>Presentation mode — hide all panels, toolbar, HUD &amp; toasts for a clean demo (<kbd>P</kbd> again or the exit chip restores)</td></tr>
+          <tr><td><svg class="svg-ic" aria-hidden="true"><use href="#i-link"/></svg> Share</td><td>Copy a deep-link that restores this exact scene, camera, layers &amp; exaggeration</td></tr>
+          <tr><td><svg class="svg-ic" aria-hidden="true"><use href="#i-bookmark"/></svg> Places</td><td>POI tour: peak, valley, overview · save your own views</td></tr>
+        </table>
+        <button id="btn-tour-replay" class="tb-btn" title="Replay the first-run onboarding tour"><svg class="svg-ic" aria-hidden="true"><use href="#i-rotate-ccw"/></svg> Replay tour</button>
+        <button id="btn-help-close" class="tb-btn">Close</button>
+      </div>
+    </div>
+
+    <div id="cheat-modal" class="modal hidden">
+      <div class="modal-card cheat-card" role="dialog" aria-label="Keyboard shortcut cheat sheet">
+        <h3><svg class="svg-ic" aria-hidden="true"><use href="#i-keyboard"/></svg> Keyboard cheat sheet</h3>
+        <div class="cheat-cols">
+          <div>
+            <p class="cheat-cat">Fly &amp; move</p>
+            <table>
+              <tr><td><kbd>V</kbd></td><td>Cycle Orbit → Drone → Walk</td></tr>
+              <tr><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></td><td>Move (drone / walk)</td></tr>
+              <tr><td><kbd>R</kbd> / <kbd>F</kbd> or <kbd>Space</kbd></td><td>Drone up / down</td></tr>
+              <tr><td><kbd>Shift</kbd></td><td>Boost</td></tr>
+              <tr><td>Drag / Wheel / Click</td><td>Look · orbit-rotate · zoom · (walk) pointer-lock</td></tr>
+            </table>
+            <p class="cheat-cat">Presentation &amp; capture</p>
+            <table>
+              <tr><td><kbd>P</kbd></td><td>Presentation mode — hide everything (<kbd>P</kbd> again or the exit chip restores)</td></tr>
+              <tr><td><kbd>Alt</kbd>+<kbd>P</kbd></td><td>Snapshot current view as PNG</td></tr>
+              <tr><td><svg class="svg-ic" aria-hidden="true"><use href="#i-zap"/></svg> <svg class="svg-ic" aria-hidden="true"><use href="#i-balance"/></svg> <svg class="svg-ic" aria-hidden="true"><use href="#i-video"/></svg> Quality presets</td><td>Quality presets — Performance / Balanced / Cinematic (Display cluster)</td></tr>
+              <tr><td><kbd>Esc</kbd></td><td>Exit presentation · close dialogs</td></tr>
+            </table>
+          </div>
+          <div>
+            <p class="cheat-cat">Discover</p>
+            <table>
+              <tr><td><kbd>H</kbd></td><td>This cheat sheet</td></tr>
+              <tr><td><kbd>?</kbd></td><td>Help panel</td></tr>
+              <tr><td><svg class="svg-ic" aria-hidden="true"><use href="#i-rotate-ccw"/></svg> Replay tour</td><td>Onboarding tour (from the Help panel)</td></tr>
+              <tr><td><svg class="svg-ic" aria-hidden="true"><use href="#i-clapper"/></svg> Auto-fly</td><td>Cinematic drone path</td></tr>
+              <tr><td><svg class="svg-ic" aria-hidden="true"><use href="#i-bookmark"/></svg> Places</td><td>Fly to saved viewpoints</td></tr>
+            </table>
+            <p class="cheat-cat">Analyze (toolbar)</p>
+            <table>
+              <tr><td><svg class="svg-ic" aria-hidden="true"><use href="#i-pin"/></svg> <svg class="svg-ic" aria-hidden="true"><use href="#i-ruler"/></svg> <svg class="svg-ic" aria-hidden="true"><use href="#i-mountain"/></svg> <svg class="svg-ic" aria-hidden="true"><use href="#i-eye"/></svg> <svg class="svg-ic" aria-hidden="true"><use href="#i-tag"/></svg> <svg class="svg-ic" aria-hidden="true"><use href="#i-scissors"/></svg> Probe · Measure · Profile · Viewshed · Spots · Slice</td><td>Probe · Measure · Profile · Viewshed · Spots · Slice</td></tr>
+              <tr><td><svg class="svg-ic" aria-hidden="true"><use href="#i-layers"/></svg> <svg class="svg-ic" aria-hidden="true"><use href="#i-compare"/></svg> <svg class="svg-ic" aria-hidden="true"><use href="#i-sun"/></svg> <svg class="svg-ic" aria-hidden="true"><use href="#i-radar"/></svg> Contours · Compare · Sun · Scan</td><td>Contours · Compare · Sun · Scan</td></tr>
+              <tr><td><svg class="svg-ic" aria-hidden="true"><use href="#i-cloud"/></svg> <svg class="svg-ic" aria-hidden="true"><use href="#i-waves"/></svg> <svg class="svg-ic" aria-hidden="true"><use href="#i-box"/></svg> Point cloud · Flood · Volume</td><td>Point cloud · Flood · Volume</td></tr>
+            </table>
+          </div>
+        </div>
+        <div class="cheat-foot">
+          <button id="btn-cheat-close" class="tb-btn">Close <kbd>Esc</kbd></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
