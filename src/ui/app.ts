@@ -135,7 +135,8 @@ function wireProcessingError(): void {
 // all five land-cover classes → the strongest SIH demo path).
 interface DemoPick { kind: LandscapeKind; fmt: string; rel: boolean; pick: string }
 const DEMO_PICKS: DemoPick[] = [
-  { kind: 'urban', fmt: 'GeoTIFF · georeferenced', rel: false, pick: 'Best for demo' },
+  { kind: 'olympic', fmt: 'PNG · real photo', rel: true, pick: 'Best for demo' },
+  { kind: 'urban', fmt: 'GeoTIFF · georeferenced', rel: false, pick: 'Procedural urban' },
   { kind: 'hilly', fmt: 'GeoTIFF · georeferenced', rel: false, pick: 'Relief showcase' },
   { kind: 'forest', fmt: 'PNG · non-georeferenced', rel: true, pick: 'Relative (rDSM) path' },
 ];

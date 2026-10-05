@@ -3,7 +3,7 @@
 
 import { mulberry32, fbm, ridged, gauss } from './rng';
 
-export type LandscapeKind = 'urban' | 'hilly' | 'forest';
+export type LandscapeKind = 'urban' | 'hilly' | 'forest' | 'olympic';
 
 // Land-cover classes (also used by the simulated classifier)
 export const LCLASS = { GROUND: 0, BUILDING: 1, ROAD: 2, VEGETATION: 3, WATER: 4 } as const;
@@ -281,10 +281,69 @@ function genForest(seed: number): SceneData {
   };
 }
 
+/** Decode a base64 string into a Uint8Array. */
+function b64ToBytes(b64: string): Uint8Array {
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+// --- Olympic Park: real satellite photo + image-derived heightfield --------
+import {
+  OLYMPIC_TEX_SIZE,
+  OLYMPIC_TEX_RGBA_B64,
+  OLYMPIC_HGT_B64,
+  OLYMPIC_LBL_B64,
+} from './olympicData';
+
+/**
+ * Build the Olympic Park scene from the embedded photo data module.
+ * The 512x512 RGBA texture is the real satellite photo; the 256x256
+ * heightfield and land-cover labels were derived from the photo's
+ * colors and shapes (stadium bowl, velodrome dome, pools, rooftops).
+ */
+function genOlympicPark(): SceneData {
+  const texBytes = b64ToBytes(OLYMPIC_TEX_RGBA_B64);
+  const hgtBytes = b64ToBytes(OLYMPIC_HGT_B64);
+  const lblBytes = b64ToBytes(OLYMPIC_LBL_B64);
+  const TS = OLYMPIC_TEX_SIZE;
+  const N = 256;
+  if (texBytes.length !== TS * TS * 4) {
+    throw new Error(`olympicData: texture length ${texBytes.length}, expected ${TS * TS * 4}`);
+  }
+  if (hgtBytes.length !== N * N * 4) {
+    throw new Error(`olympicData: heights length ${hgtBytes.length}, expected ${N * N * 4}`);
+  }
+  if (lblBytes.length !== N * N) {
+    throw new Error(`olympicData: labels length ${lblBytes.length}, expected ${N * N}`);
+  }
+  const heights = new Float32Array(hgtBytes.buffer, hgtBytes.byteOffset, (N * N));
+  const labels = new Uint8Array(lblBytes.buffer, lblBytes.byteOffset, N * N);
+  const canvas = document.createElement('canvas');
+  canvas.width = TS; canvas.height = TS;
+  const ctx = canvas.getContext('2d')!;
+  const img = new ImageData(new Uint8ClampedArray(texBytes), TS, TS);
+  ctx.putImageData(img, 0, 0);
+
+  let mn = Infinity, mx = -Infinity;
+  for (let i = 0; i < heights.length; i++) {
+    const v = heights[i];
+    if (v < mn) mn = v;
+    if (v > mx) mx = v;
+  }
+  return {
+    id: 'olympic', name: 'Olympic Park — Real Photo', kind: 'olympic', size: N, worldSize: 1100,
+    heights, labels, rgb: canvas, baseElevation: 120, relief: mx - mn,
+    blurb: 'Real satellite photo: Olympic sports complex — stadium, velodrome, pools, courts and halls with image-derived heights.',
+  };
+}
+
 export function generateScene(kind: LandscapeKind): SceneData {
   const seeds = { urban: 1207, hilly: 4242, forest: 777 };
   if (kind === 'urban') return genUrban(seeds.urban);
   if (kind === 'hilly') return genHilly(seeds.hilly);
+  if (kind === 'olympic') return genOlympicPark();
   return genForest(seeds.forest);
 }
 
